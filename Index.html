@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cardápio Digital</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: #f8f9fa; padding-bottom: 80px; }
+        
+        /* Cabeçalho */
+		.banner { 
+			width: 100%; 
+			height: 160px; /* Aumentei um pouco a altura para destacar a imagem */
+			background-image: url('./imagens/banner.jpg'); /* Caminho para sua imagem */
+			background-size: cover; /* Faz a imagem cobrir todo o espaço disponível */
+			background-position: center; /* Centraliza a imagem no topo */
+			background-repeat: no-repeat; /* Impede que a imagem se repita */
+		}
+        .header-content { background: #fff; padding: 15px; text-align: center; border-bottom: 1px solid #eee; margin-top: -30px; border-radius: 20px 20px 0 0; position: relative; }
+        .logo { width: 80px; height: 80px; border-radius: 50%; border: 4px solid #fff; position: absolute; top: -40px; left: 50%; transform: translateX(-50%); background: #eee; }
+        .status { font-size: 12px; color: #27ae60; font-weight: bold; margin-top: 45px; }
+        
+        /* Categorias Scroll */
+        .nav-categorias { display: flex; overflow-x: auto; padding: 15px; background: #fff; position: sticky; top: 0; z-index: 100; gap: 20px; border-bottom: 1px solid #eee; }
+        .nav-categorias::-webkit-scrollbar { display: none; }
+        .nav-categorias a { text-decoration: none; color: #666; font-size: 14px; font-weight: 600; white-space: nowrap; }
+
+        /* Seções e Cards */
+        .container { padding: 15px; }
+        .titulo-secao { margin: 20px 0 10px; font-size: 18px; border-left: 4px solid #e67e22; padding-left: 10px; }
+        .grid-produtos { display: flex; 
+			flex-direction: column; 
+			gap: 10px; 
+		}
+        .card { 
+					display: flex; 
+					flex-direction: row; /* Alinha itens lado a lado */
+					justify-content: space-between; 
+					align-items: center; 
+					background: #fff; 
+					border-radius: 12px; 
+					padding: 15px; 
+					box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+					border-bottom: 1px solid #eee;
+				}
+
+				/* Ajusta a imagem para ficar pequena no canto direito */
+				.card img { 
+					width: 80px; 
+					height: 80px; 
+					object-fit: contain; 
+					background: #fff; 
+					border-radius: 8px;
+					border: 1px solid #f0f0f0;
+					margin-left: 10px;
+				}
+
+				.card-body { 
+					flex: 1; /* Faz o texto ocupar o espaço restante */
+					padding: 0; 
+				}
+				/* Estilo do botão verde de "Adicionar" igual ao seu print */
+.btn-adicionar {
+    border: 1px solid #27ae60;
+    color: #27ae60;
+    background: transparent;
+    padding: 5px 15px;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+}
+        .nome { font-size: 14px; font-weight: bold; height: 38px; overflow: hidden; }
+        .preco { color: #27ae60; font-weight: bold; font-size: 16px; margin-top: 5px; }
+
+        /* Bottom Nav */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: #fff; display: flex; justify-content: space-around; padding: 12px; border-top: 1px solid #eee; }
+        .nav-btn { text-align: center; color: #999; font-size: 10px; text-decoration: none; }
+		/* Badge de contador no carrinho */
+.cart-count {
+    background: #e74c3c;
+    color: white;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    position: absolute;
+    top: 5px;
+    right: 25%;
+}
+
+/* Modal do Carrinho */
+#cart-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+}
+
+.cart-content {
+    background: white;
+    width: 90%;
+    max-width: 400px;
+    margin: 50px auto;
+    border-radius: 15px;
+    padding: 20px;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+}
+
+.cart-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.qty-btn {
+    background: #f1f1f1;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+/* Botão Moderno de Finalizar */
+.btn-finalizar {
+    background: #27ae60;
+    color: white;
+    width: 100%;
+    padding: 15px;
+    border: none;
+    border-radius: 10px;
+    font-weight: bold;
+    font-size: 16px;
+    margin-top: 20px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Modal de Detalhes do Produto */
+#product-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.7);
+    z-index: 2000;
+}
+
+.product-detail-content {
+    background: white;
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+    height: 100%;
+    overflow-y: auto;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.detail-img {
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+}
+
+.detail-body {
+    padding: 20px;
+    flex: 1;
+}
+
+.obs-box {
+    width: 100%;
+    height: 80px;
+    margin-top: 15px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    resize: none;
+    font-family: inherit;
+}
+
+.btn-confirm-add {
+    background: #27ae60;
+    color: white;
+    padding: 15px;
+    border: none;
+    width: 100%;
+    font-weight: bold;
+    font-size: 16px;
+    cursor: pointer;
+    position: sticky;
+    bottom: 0;
+}
+    </style>
+</head>
+<body>
+
+<div id="product-modal">
+    <div class="product-detail-content">
+        <button onclick="closeProductModal()" style="position: absolute; top: 15px; left: 15px; background: white; border-radius: 50%; width: 35px; height: 35px; border: none; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">X</button>
+        
+        <img id="modal-img" src="" class="detail-img">
+        
+        <div class="detail-body">
+            <h2 id="modal-nome"></h2>
+            <p id="modal-desc" style="color: #666; margin-top: 10px; font-size: 14px;"></p>
+            <p id="modal-preco" style="color: #27ae60; font-weight: bold; font-size: 20px; margin-top: 15px;"></p>
+            
+            <h4 style="margin-top: 25px;">Alguma observação?</h4>
+            <textarea id="modal-obs" class="obs-box" placeholder="Ex: Retirar cebola, ponto da carne, etc..."></textarea>
+        </div>
+
+        <button class="btn-confirm-add" id="btn-confirmar">Adicionar ao Pedido</button>
+    </div>
+</div>
+
+
+
+    <div class="banner"></div>
+    <div class="header-content">
+    <img src="./imagens/logo.png" alt="Logo da Loja" class="logo">
+    <div class="status">● ABERTO AGORA</div>
+    <h2>Comida Caseira</h2>
+	</div>
+
+    <nav class="nav-categorias">
+        <a href="#prato-dia">Prato do Dia</a>
+        <a href="#promocao">Promoções</a>
+        <a href="#comidas">Comidas</a>
+        <a href="#bebidas">Bebidas</a>
+    </nav>
+
+    <div class="container">
+        <div id="secoes-container">
+            <section id="prato-dia"><h3 class="titulo-secao">Prato do Dia</h3><div class="grid-produtos"></div></section>
+            <section id="promocao"><h3 class="titulo-secao">Promoções</h3><div class="grid-produtos"></div></section>
+            <section id="comidas"><h3 class="titulo-secao">Comidas</h3><div class="grid-produtos"></div></section>
+            <section id="bebidas"><h3 class="titulo-secao">Bebidas</h3><div class="grid-produtos"></div></section>
+        </div>
+    </div>
+	
+		<div id="cart-modal">
+    <div class="cart-content">
+        <h3>Seu Pedido</h3>
+        <div id="cart-items-list"></div>
+        <div style="margin-top: 20px; font-weight: bold; font-size: 18px; display: flex; justify-content: space-between;">
+            <span>Total:</span>
+            <span id="cart-total-price">R$ 0.00</span>
+        </div>
+        <button class="btn-finalizar" onclick="finalizarPedido()">
+            🚀 Finalizar no WhatsApp
+        </button>
+        <button onclick="toggleCart()" style="width:100%; margin-top:10px; background:none; border:none; color:#999; cursor:pointer;">Continuar Comprando</button>
+    </div>
+</div>
+
+<div class="bottom-nav">
+    <a href="javascript:void(0)" class="nav-btn" onclick="toggleCart()" style="position:relative;">
+        🛒<br>Carrinho
+        <span class="cart-count">0</span>
+    </a>
+</div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyB-kF0SqbeRpJZrfcav2tlhIX3HUvAcs3o",
+    authDomain: "comidamae-86350.firebaseapp.com",
+    projectId: "comidamae-86350",
+    storageBucket: "comidamae-86350.firebasestorage.app",
+    messagingSenderId: "298569952723",
+    appId: "1:298569952723:web:e00d98d4895ecb85d21326"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// --- LÓGICA DO CARRINHO (FORA DO SNAPSHOT PARA NÃO ZERAR) ---
+let cart = [];
+
+let produtoSelecionado = null;
+
+window.abrirDetalhes = (nome, desc, preco, imagem) => {
+    produtoSelecionado = { nome, preco, imagem };
+    document.getElementById('modal-nome').innerText = nome;
+    document.getElementById('modal-desc').innerText = desc || "Sem descrição disponível.";
+    document.getElementById('modal-preco').innerText = `R$ ${parseFloat(preco).toFixed(2)}`;
+    document.getElementById('modal-img').src = imagem || 'https://via.placeholder.com/200';
+    document.getElementById('modal-obs').value = ""; 
+    document.getElementById('product-modal').style.display = 'block';
+};
+
+window.closeProductModal = () => {
+    document.getElementById('product-modal').style.display = 'none';
+};
+
+// E TAMBÉM O BOTÃO DE CONFIRMAR:
+document.getElementById('btn-confirmar').onclick = () => {
+    const obs = document.getElementById('modal-obs').value;
+    cart.push({
+        nome: produtoSelecionado.nome,
+        preco: parseFloat(produtoSelecionado.preco),
+        quantidade: 1,
+        observacao: obs
+    });
+    updateCartUI();
+    closeProductModal();
+};
+
+window.addToCart = (nome, preco) => {
+    const itemExistente = cart.find(item => item.nome === nome);
+    if (itemExistente) {
+        itemExistente.quantidade++;
+    } else {
+        cart.push({ nome, preco: parseFloat(preco), quantidade: 1 });
+    }
+    updateCartUI();
+};
+
+window.updateQty = (index, delta) => {
+    cart[index].quantidade += delta;
+    if (cart[index].quantidade <= 0) cart.splice(index, 1);
+    updateCartUI();
+};
+
+function updateCartUI() {
+    const list = document.getElementById('cart-items-list');
+    const totalEl = document.getElementById('cart-total-price');
+    const countBadge = document.querySelector('.cart-count');
+    
+    list.innerHTML = '';
+    let total = 0;
+    let totalItens = 0;
+
+    cart.forEach((item, index) => {
+        total += item.preco * item.quantidade;
+        totalItens += item.quantidade;
+        list.innerHTML += `
+            <div class="cart-item">
+                <div>
+                    <strong>${item.nome}</strong><br>
+                    <small>R$ ${item.preco.toFixed(2)}</small>
+                </div>
+                <div>
+                    <button class="qty-btn" onclick="updateQty(${index}, -1)">-</button>
+                    <span style="margin: 0 10px">${item.quantidade}</span>
+                    <button class="qty-btn" onclick="updateQty(${index}, 1)">+</button>
+                </div>
+            </div>
+        `;
+    });
+
+    totalEl.innerText = `R$ ${total.toFixed(2)}`;
+    if(countBadge) countBadge.innerText = totalItens;
+}
+
+window.toggleCart = () => {
+    const modal = document.getElementById('cart-modal');
+    modal.style.display = (modal.style.display === 'block') ? 'none' : 'block';
+};
+
+window.finalizarPedido = () => {
+    if (cart.length === 0) return alert("Seu carrinho está vazio!");
+    
+    const nome = document.getElementById('cliente-nome').value;
+    const endereco = document.getElementById('cliente-endereco').value;
+    const pagamento = document.getElementById('pagamento').value;
+
+    if (!nome || !endereco || !pagamento) return alert("Preencha seus dados de entrega.");
+    
+    let mensagem = `*Novo Pedido - Comida Caseira*\n`;
+    mensagem += `*Cliente:* ${nome}\n*Endereço:* ${endereco}\n*Pagamento:* ${pagamento}\n\n*Itens:*\n`;
+
+    let total = 0;
+    cart.forEach(item => {
+        const subtotal = item.preco * item.quantidade;
+        mensagem += `• ${item.quantidade}x *${item.nome}* - R$ ${subtotal.toFixed(2)}\n`;
+        // ESTA LINHA ABAIXO É A NOVIDADE:
+        if(item.observacao) mensagem += `   _Obs: ${item.observacao}_\n`; 
+        total += subtotal;
+    });
+
+    mensagem += `\n*Total: R$ ${total.toFixed(2)}*`;
+
+    const fone = "5511999999999"; 
+    window.open(`https://wa.me/${fone}?text=${encodeURIComponent(mensagem)}`, '_blank');
+};
+
+// --- RENDERIZAÇÃO DO FIREBASE (SÓ PARA ATUALIZAR OS PRODUTOS) ---
+onSnapshot(collection(db, "produtos"), (snapshot) => {
+    document.querySelectorAll('.grid-produtos').forEach(grid => grid.innerHTML = '');
+
+    snapshot.forEach((doc) => {
+        const p = doc.data();
+        const card = `
+            <div class="card">
+                <div class="card-body">
+                    <div class="nome" style="height: auto; margin-bottom: 5px;">${p.nome}</div>
+                    <div style="font-size: 11px; color: #777; margin-bottom: 5px;">
+                        ${p.descricao || ''}
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <div class="preco" style="margin-top: 0;">R$ ${parseFloat(p.preco).toFixed(2)}</div>
+                        <button class="btn-adicionar" onclick="abrirDetalhes('${p.nome}', '${p.descricao || ''}', '${p.preco}', '${p.imagem}')">Adicionar</button>
+                    </div>
+                </div>
+                <img src="${p.imagem || 'https://via.placeholder.com/200'}" alt="${p.nome}">
+            </div>
+        `;
+        const targetGrid = document.querySelector(`#${p.categoria} .grid-produtos`);
+        if(targetGrid) targetGrid.innerHTML += card;
+    });
+});
+</script>
+</body>
+</html>
