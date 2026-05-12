@@ -6,6 +6,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cardápio Digital</title>
     <style>
+	
+	
+	/* Limita a descrição do produto a 2 linhas com "..." */
+.desc-produto {
+    font-size: 11px; 
+    color: #777; 
+    margin-bottom: 8px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+	
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
         body { background-color: #f8f9fa; padding-bottom: 80px; }
         
@@ -308,7 +322,7 @@ section {
     <div class="banner"></div>
     <div class="header-content">
     <img src="./imagens/logo.webp" alt="Logo da Loja" class="logo">
-    <div class="status">● ABERTO AGORA</div>
+    <div id="status-loja" class="status" style="transition: color 0.3s;">● VERIFICANDO...</div>
     <h2>Comida Caseira</h2>
 	</div>
 
@@ -335,7 +349,15 @@ section {
         
         <div style="margin-top: 20px;">
             <input type="text" id="cliente-nome" placeholder="Seu Nome" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ddd; border-radius:8px;">
-            <input type="text" id="cliente-endereco" placeholder="Endereço de Entrega" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ddd; border-radius:8px;">
+            
+            <input type="text" id="cliente-cep" placeholder="Digite seu CEP" maxlength="9" onkeyup="buscarCEP(this.value)" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ddd; border-radius:8px;">
+            <input type="text" id="cliente-endereco" placeholder="Rua, Bairro e Cidade" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ddd; border-radius:8px; background-color: #f9f9f9;">
+            
+            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                <input type="number" id="cliente-numero" placeholder="Número" style="width:40%; padding:10px; border:1px solid #ddd; border-radius:8px;">
+                <input type="text" id="cliente-complemento" placeholder="Comp. (Opcional)" style="width:60%; padding:10px; border:1px solid #ddd; border-radius:8px;">
+            </div>
+
             <select id="pagamento" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ddd; border-radius:8px;">
                 <option value="">Forma de Pagamento</option>
                 <option value="Pix">Pix</option>
@@ -360,6 +382,15 @@ section {
     🛒
     <span class="cart-count">0</span>
 </a>
+
+<div id="success-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; align-items: center; justify-content: center;">
+    <div style="background: white; width: 90%; max-width: 400px; border-radius: 20px; padding: 30px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+        <div style="font-size: 60px; margin-bottom: 15px;">✅</div>
+        <h2 style="color: #333; margin-bottom: 10px;">Pedido Iniciado!</h2>
+        <p style="color: #666; font-size: 14px; margin-bottom: 25px;">Seu pedido foi direcionado para o nosso WhatsApp. Continue o atendimento por lá!</p>
+        <button onclick="fecharSucesso()" style="background: #EA1D2C; color: white; width: 100%; padding: 15px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 16px;">Voltar ao Cardápio</button>
+    </div>
+</div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -472,19 +503,49 @@ window.toggleCart = () => {
     modal.style.display = (modal.style.display === 'block') ? 'none' : 'block';
 };
 
+window.buscarCEP = async (cep) => {
+    const cepLimpo = cep.replace(/\D/g, '');
+    if (cepLimpo.length === 8) {
+        document.getElementById('cliente-endereco').value = "Buscando endereço...";
+        try {
+            const response = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`);
+            const data = await response.json();
+            if (!data.erro) {
+                document.getElementById('cliente-endereco').value = `${data.logradouro}, ${data.bairro} - ${data.localidade}/${data.uf}`;
+                document.getElementById('cliente-numero').focus(); 
+            } else {
+                document.getElementById('cliente-endereco').value = "";
+                alert("CEP não encontrado!");
+            }
+        } catch (error) {
+            document.getElementById('cliente-endereco').value = "";
+            alert("Erro ao buscar o CEP.");
+        }
+    }
+};
+
+window.fecharSucesso = () => document.getElementById('success-modal').style.display = 'none';
+
 window.finalizarPedido = () => {
+    if (window.lojaAberta === false) {
+        return alert("Desculpe, nossa loja está fechada no momento! Confira nosso horário de funcionamento.");
+    }
     if (cart.length === 0) return alert("Seu carrinho está vazio!");
     
     const nome = document.getElementById('cliente-nome').value;
+    const cep = document.getElementById('cliente-cep').value;
     const endereco = document.getElementById('cliente-endereco').value;
+    const numero = document.getElementById('cliente-numero').value;
+    const complemento = document.getElementById('cliente-complemento').value;
     const pagamento = document.getElementById('pagamento').value;
 
-    if (!nome || !endereco || !pagamento) {
-        return alert("Por favor, preencha nome, endereço e forma de pagamento.");
-    }
+    if (!nome || !endereco || !numero || !pagamento) return alert("Preencha Nome, CEP, Número e Pagamento.");
     
-    let mensagem = `*Novo Pedido - Comida Caseira*\n`;
-    mensagem += `*Cliente:* ${nome}\n*Endereço:* ${endereco}\n*Pagamento:* ${pagamento}\n\n*Itens:*\n`;
+    let enderecoCompleto = `${endereco}, Nº ${numero}`;
+    if (complemento) enderecoCompleto += ` (${complemento})`;
+    if (cep) enderecoCompleto += ` - CEP: ${cep}`;
+
+    let mensagem = `*Novo Pedido - Comida Caseira*\n*Cliente:* ${nome}\n*Endereço:* ${enderecoCompleto}\n*Pagamento:* ${pagamento}\n\n*Itens:*\n`;
 
     let total = 0;
     cart.forEach(item => {
@@ -496,10 +557,49 @@ window.finalizarPedido = () => {
 
     mensagem += `\n*Total: R$ ${total.toFixed(2)}*`;
     const fone = "5521991295214"; 
+    
     window.open(`https://wa.me/${fone}?text=${encodeURIComponent(mensagem)}`, '_blank');
+    
+    document.getElementById('cart-modal').style.display = 'none';
+    document.getElementById('success-modal').style.display = 'flex';
+    
+    cart = [];
+    updateCartUI();
+    document.getElementById('cliente-nome').value = '';
+    document.getElementById('cliente-cep').value = '';
+    document.getElementById('cliente-endereco').value = '';
+    document.getElementById('cliente-numero').value = '';
+    document.getElementById('cliente-complemento').value = '';
+    document.getElementById('pagamento').value = '';
 };
 
-// --- RENDERIZAÇÃO DO FIREBASE ---
+// --- SISTEMA DE HORÁRIO ---
+function verificarHorario() {
+    const horarios = {
+        0: { abre: 9, fecha: 22 }, 1: null, 2: { abre: 9, fecha: 22 }, 
+        3: { abre: 9, fecha: 22 }, 4: { abre: 9, fecha: 22 }, 
+        5: { abre: 9, fecha: 23 }, 6: { abre: 9, fecha: 23 }
+    };
+    const agora = new Date();
+    const diaSemana = agora.getDay();
+    const horaAtual = agora.getHours();
+    const statusElement = document.getElementById('status-loja');
+    const horarioHoje = horarios[diaSemana];
+
+    window.lojaAberta = (horarioHoje !== null && horaAtual >= horarioHoje.abre && horaAtual < horarioHoje.fecha);
+
+    if (window.lojaAberta) {
+        statusElement.innerText = "● ABERTO AGORA";
+        statusElement.style.color = "#27ae60";
+    } else {
+        statusElement.innerText = "● FECHADO";
+        statusElement.style.color = "#EA1D2C";
+    }
+}
+verificarHorario();
+setInterval(verificarHorario, 60000);
+
+// --- RENDERIZAÇÃO DO FIREBASE (COM PROTEÇÃO DE ASPAS E DESCRIÇÃO) ---
 onSnapshot(collection(db, "produtos"), (snapshot) => {
     document.querySelectorAll('.grid-produtos').forEach(grid => grid.innerHTML = '');
 
@@ -509,12 +609,10 @@ onSnapshot(collection(db, "produtos"), (snapshot) => {
             <div class="card">
                 <div class="card-body">
                     <div class="nome" style="height: auto; margin-bottom: 5px;">${p.nome}</div>
-                    <div style="font-size: 11px; color: #777; margin-bottom: 5px;">
-                        ${p.descricao || ''}
-                    </div>
+                    <div class="desc-produto">${p.descricao || ''}</div>
                     <div style="display: flex; align-items: center; gap: 15px;">
                         <div class="preco" style="margin-top: 0;">R$ ${parseFloat(p.preco).toFixed(2)}</div>
-                        <button class="btn-adicionar" onclick="abrirDetalhes('${p.nome}', '${p.descricao || ''}', '${p.preco}', '${p.imagem}')">Adicionar</button>
+                        <button class="btn-adicionar" onclick="abrirDetalhes(\`${p.nome}\`, \`${p.descricao || ''}\`, '${p.preco}', '${p.imagem}')">Adicionar</button>
                     </div>
                 </div>
                 <img src="${p.imagem || 'https://via.placeholder.com/200'}" alt="${p.nome}" loading="lazy">
