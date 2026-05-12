@@ -166,6 +166,14 @@
     z-index: 1000;
 }
 
+html {
+    scroll-behavior: smooth;
+}
+
+section {
+    scroll-margin-top: 70px; /* Ajuste esse valor conforme a altura da sua nav */
+}
+
 .cart-content {
     background: white;
     width: 90%;
@@ -369,11 +377,32 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// --- LÓGICA DO CARRINHO (FORA DO SNAPSHOT PARA NÃO ZERAR) ---
 let cart = [];
-
 let produtoSelecionado = null;
 
+// --- LÓGICA DE NAVEGAÇÃO SUAVE (FIXED) ---
+const links = document.querySelectorAll('.nav-categorias a');
+
+links.forEach(link => {
+    link.addEventListener('click', function(e) {
+        e.preventDefault(); 
+        
+        links.forEach(l => l.classList.remove('active'));
+        this.classList.add('active');
+
+        const targetId = this.getAttribute('href');
+        const targetElement = document.querySelector(targetId);
+        
+        if (targetElement) {
+            targetElement.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+    });
+});
+
+// --- FUNÇÕES DO PRODUTO E CARRINHO ---
 window.abrirDetalhes = (nome, desc, preco, imagem) => {
     produtoSelecionado = { nome, preco, imagem };
     document.getElementById('modal-nome').innerText = nome;
@@ -388,7 +417,6 @@ window.closeProductModal = () => {
     document.getElementById('product-modal').style.display = 'none';
 };
 
-// E TAMBÉM O BOTÃO DE CONFIRMAR:
 document.getElementById('btn-confirmar').onclick = () => {
     const obs = document.getElementById('modal-obs').value;
     cart.push({
@@ -399,16 +427,6 @@ document.getElementById('btn-confirmar').onclick = () => {
     });
     updateCartUI();
     closeProductModal();
-};
-
-window.addToCart = (nome, preco) => {
-    const itemExistente = cart.find(item => item.nome === nome);
-    if (itemExistente) {
-        itemExistente.quantidade++;
-    } else {
-        cart.push({ nome, preco: parseFloat(preco), quantidade: 1 });
-    }
-    updateCartUI();
 };
 
 window.updateQty = (index, delta) => {
@@ -427,23 +445,23 @@ function updateCartUI() {
     let totalItens = 0;
 
     cart.forEach((item, index) => {
-    total += item.preco * item.quantidade;
-    totalItens += item.quantidade;
-    list.innerHTML += `
-        <div class="cart-item">
-            <div>
-                <strong>${item.nome}</strong><br>
-                <small>R$ ${item.preco.toFixed(2)}</small>
-                ${item.observacao ? `<br><span style="font-size:10px; color:#e67e22;">Obs: ${item.observacao}</span>` : ''}
+        total += item.preco * item.quantidade;
+        totalItens += item.quantidade;
+        list.innerHTML += `
+            <div class="cart-item">
+                <div>
+                    <strong>${item.nome}</strong><br>
+                    <small>R$ ${item.preco.toFixed(2)}</small>
+                    ${item.observacao ? `<br><span style="font-size:10px; color:#EA1D2C;">Obs: ${item.observacao}</span>` : ''}
+                </div>
+                <div style="display: flex; align-items: center;">
+                    <button class="qty-btn" onclick="updateQty(${index}, -1)">-</button>
+                    <span style="margin: 0 10px">${item.quantidade}</span>
+                    <button class="qty-btn" onclick="updateQty(${index}, 1)">+</button>
+                </div>
             </div>
-            <div style="display: flex; align-items: center;">
-                <button class="qty-btn" onclick="updateQty(${index}, -1)">-</button>
-                <span style="margin: 0 10px">${item.quantidade}</span>
-                <button class="qty-btn" onclick="updateQty(${index}, 1)">+</button>
-            </div>
-        </div>
-    `;
-});
+        `;
+    });
 
     totalEl.innerText = `R$ ${total.toFixed(2)}`;
     if(countBadge) countBadge.innerText = totalItens;
@@ -453,18 +471,6 @@ window.toggleCart = () => {
     const modal = document.getElementById('cart-modal');
     modal.style.display = (modal.style.display === 'block') ? 'none' : 'block';
 };
-
-// Seleciona todos os links da nav
-const links = document.querySelectorAll('.nav-categorias a');
-
-links.forEach(link => {
-    link.addEventListener('click', function() {
-        // Remove a classe active de todos
-        links.forEach(l => l.classList.remove('active'));
-        // Adiciona no que foi clicado
-        this.classList.add('active');
-    });
-});
 
 window.finalizarPedido = () => {
     if (cart.length === 0) return alert("Seu carrinho está vazio!");
@@ -477,7 +483,6 @@ window.finalizarPedido = () => {
         return alert("Por favor, preencha nome, endereço e forma de pagamento.");
     }
     
-	
     let mensagem = `*Novo Pedido - Comida Caseira*\n`;
     mensagem += `*Cliente:* ${nome}\n*Endereço:* ${endereco}\n*Pagamento:* ${pagamento}\n\n*Itens:*\n`;
 
@@ -490,13 +495,11 @@ window.finalizarPedido = () => {
     });
 
     mensagem += `\n*Total: R$ ${total.toFixed(2)}*`;
-
-    // Seu número atualizado com o código do Brasil (55) + DDD (21)
     const fone = "5521991295214"; 
     window.open(`https://wa.me/${fone}?text=${encodeURIComponent(mensagem)}`, '_blank');
 };
 
-// --- RENDERIZAÇÃO DO FIREBASE (SÓ PARA ATUALIZAR OS PRODUTOS) ---
+// --- RENDERIZAÇÃO DO FIREBASE ---
 onSnapshot(collection(db, "produtos"), (snapshot) => {
     document.querySelectorAll('.grid-produtos').forEach(grid => grid.innerHTML = '');
 
