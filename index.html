@@ -20,26 +20,63 @@
         .logo { width: 80px; height: 80px; border-radius: 50%; border: 4px solid #fff; position: absolute; top: -40px; left: 50%; transform: translateX(-50%); background: #eee; }
         .status { font-size: 12px; color: #27ae60; font-weight: bold; margin-top: 45px; }
         
-        /* Categorias Scroll */
-        .nav-categorias {
+        /* Container da Navegação */
+.nav-categorias {
     display: flex;
     overflow-x: auto;
-    padding: 15px;
-    background: rgba(255, 255, 255, 0.8); /* Transparência */
-    backdrop-filter: blur(10px); /* Desfoque do fundo */
-    -webkit-backdrop-filter: blur(10px);
+    padding: 12px 15px;
+    background: #fff;
     position: sticky;
     top: 0;
     z-index: 100;
-    gap: 20px;
-    border-bottom: 1px solid rgba(0,0,0,0.05);
+    gap: 12px;
+    border-bottom: 1px solid #f2f2f2;
+    scrollbar-width: none; /* Esconde scroll no Firefox */
 }
-        .nav-categorias::-webkit-scrollbar { display: none; }
-        .nav-categorias a { text-decoration: none; color: #666; font-size: 14px; font-weight: 600; white-space: nowrap; }
 
+.nav-categorias::-webkit-scrollbar {
+    display: none; /* Esconde scroll no Chrome/Safari */
+}
+
+/* Estilo das "Pílulas" de Categoria */
+.nav-categorias a {
+    text-decoration: none;
+    color: #666;
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+    padding: 8px 20px;
+    border-radius: 50px;
+    border: 1px solid #dcdcdc;
+    background: #fff;
+    transition: all 0.2s ease;
+}
+
+
+
+/* Estado Ativo/Clicado (Estilo iFood) */
+.nav-categorias a:active, .nav-categorias a.active {
+    background-color: #EA1D2C; /* Vermelho iFood */
+    color: #fff;
+    border-color: #EA1D2C;
+    transform: scale(0.95);
+}
+
+/* Efeito de hover (apenas para desktop) */
+@media (min-width: 768px) {
+    .nav-categorias a:hover {
+        border-color: #EA1D2C;
+        color: #EA1D2C;
+    }
+}
         /* Seções e Cards */
         .container { padding: 15px; }
-        .titulo-secao { margin: 20px 0 10px; font-size: 18px; border-left: 4px solid #e67e22; padding-left: 10px; }
+        .titulo-secao { 
+    margin: 20px 0 10px; 
+    font-size: 18px; 
+    border-left: 4px solid #EA1D2C; /* Mudado de #e67e22 para vermelho */
+    padding-left: 10px; 
+}
         .grid-produtos { display: flex; 
 			flex-direction: column; 
 			gap: 10px; 
@@ -75,8 +112,8 @@
 				}
 				/* Estilo do botão verde de "Adicionar" igual ao seu print */
 .btn-adicionar {
-    border: 1px solid #27ae60;
-    color: #27ae60;
+    border: 1px solid #EA1D2C; /* Mudado de verde para vermelho */
+    color: #EA1D2C;            /* Mudado de verde para vermelho */
     background: transparent;
     padding: 5px 15px;
     border-radius: 5px;
@@ -85,14 +122,14 @@
     margin-top: 10px;
 }
         .nome { font-size: 14px; font-weight: bold; height: 38px; overflow: hidden; }
-        .preco { color: #27ae60; font-weight: bold; font-size: 16px; margin-top: 5px; }
+        .preco { color: #333; font-weight: bold; font-size: 16px; margin-top: 5px; }
 
         /* Bottom Nav */
-        .floating-cart {
+.floating-cart {
     position: fixed;
     bottom: 20px;
     right: 20px;
-    background: #27ae60;
+    background: #EA1D2C; /* Mudado de verde para vermelho */
     color: white;
     width: 60px;
     height: 60px;
@@ -100,7 +137,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 15px rgba(234, 29, 44, 0.3); /* Sombra avermelhada */
     z-index: 999;
     text-decoration: none;
 }
@@ -160,7 +197,7 @@
 
 /* Botão Moderno de Finalizar */
 .btn-finalizar {
-    background: #27ae60;
+    background: #EA1D2C; /* Mudado de verde para vermelho */
     color: white;
     width: 100%;
     padding: 15px;
@@ -170,7 +207,7 @@
     font-size: 16px;
     margin-top: 20px;
     cursor: pointer;
-    box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+    box-shadow: 0 4px 15px rgba(234, 29, 44, 0.3);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -224,7 +261,7 @@
 }
 
 .btn-confirm-add {
-    background: #27ae60;
+    background: #EA1D2C; /* Mudado de verde para vermelho */
     color: white;
     padding: 15px;
     border: none;
@@ -243,7 +280,7 @@
     <div class="product-detail-content">
         <button onclick="closeProductModal()" style="position: absolute; top: 15px; left: 15px; background: white; border-radius: 50%; width: 35px; height: 35px; border: none; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">X</button>
         
-        <img id="modal-img" src="" class="detail-img">
+        <img id="modal-img" src="" class="detail-img" loading="lazy">
         
         <div class="detail-body">
             <h2 id="modal-nome"></h2>
@@ -268,11 +305,11 @@
 	</div>
 
     <nav class="nav-categorias">
-        <a href="#prato-dia">Prato do Dia</a>
-        <a href="#promocao">Promoções</a>
-        <a href="#comidas">Comidas</a>
-        <a href="#bebidas">Bebidas</a>
-    </nav>
+    <a href="#prato-dia" class="active">Prato do Dia</a>
+    <a href="#promocao">Promoções</a>
+    <a href="#comidas">Comidas</a>
+    <a href="#bebidas">Bebidas</a>
+</nav>
 
     <div class="container">
         <div id="secoes-container">
@@ -417,6 +454,18 @@ window.toggleCart = () => {
     modal.style.display = (modal.style.display === 'block') ? 'none' : 'block';
 };
 
+// Seleciona todos os links da nav
+const links = document.querySelectorAll('.nav-categorias a');
+
+links.forEach(link => {
+    link.addEventListener('click', function() {
+        // Remove a classe active de todos
+        links.forEach(l => l.classList.remove('active'));
+        // Adiciona no que foi clicado
+        this.classList.add('active');
+    });
+});
+
 window.finalizarPedido = () => {
     if (cart.length === 0) return alert("Seu carrinho está vazio!");
     
@@ -428,6 +477,7 @@ window.finalizarPedido = () => {
         return alert("Por favor, preencha nome, endereço e forma de pagamento.");
     }
     
+	
     let mensagem = `*Novo Pedido - Comida Caseira*\n`;
     mensagem += `*Cliente:* ${nome}\n*Endereço:* ${endereco}\n*Pagamento:* ${pagamento}\n\n*Itens:*\n`;
 
@@ -464,7 +514,7 @@ onSnapshot(collection(db, "produtos"), (snapshot) => {
                         <button class="btn-adicionar" onclick="abrirDetalhes('${p.nome}', '${p.descricao || ''}', '${p.preco}', '${p.imagem}')">Adicionar</button>
                     </div>
                 </div>
-                <img src="${p.imagem || 'https://via.placeholder.com/200'}" alt="${p.nome}">
+                <img src="${p.imagem || 'https://via.placeholder.com/200'}" alt="${p.nome}" loading="lazy">
             </div>
         `;
         const targetGrid = document.querySelector(`#${p.categoria} .grid-produtos`);
