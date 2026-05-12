@@ -20,6 +20,7 @@
         /* Botão Vermelho iFood */
         button { background: #EA1D2C; color: #fff; font-weight: bold; cursor: pointer; border: none; transition: 0.3s; margin-top: 15px; }
         button:hover { background: #c01724; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
         
         #addBtn.editando { background: #f39c12; }
         
@@ -61,7 +62,7 @@
         <label>FOTO DO PRATO (GALERIA)</label>
         <input type="file" id="inputArquivo" accept="image/*">
         <img id="preview" src="">
-        <input type="hidden" id="imagemBase64"> <button id="addBtn">Salvar Produto</button>
+        <input type="hidden" id="imagemUrl"> <button id="addBtn">Salvar Produto</button>
         <button id="cancelBtn" style="display:none; background:#999;">Cancelar Edição</button>
 
         <hr style="margin: 25px 0; border: 0; border-top: 1px solid #eee;">
@@ -73,6 +74,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+        // Configurações do Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyB-kF0SqbeRpJZrfcav2tlhIX3HUvAcs3o",
             authDomain: "comidamae-86350.firebaseapp.com",
@@ -82,6 +84,10 @@
             appId: "1:298569952723:web:e00d98d4895ecb85d21326"
         };
 
+        // Credenciais do Cloudinary
+        const CLOUD_NAME = "dshhehb3n";
+        const UPLOAD_PRESET = "marmita";
+
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const ref = collection(db, "produtos");
@@ -90,38 +96,65 @@
         const cancelBtn = document.getElementById('cancelBtn');
         const inputArquivo = document.getElementById('inputArquivo');
         const preview = document.getElementById('preview');
-        const imagemBase64 = document.getElementById('imagemBase64');
+        const imagemUrl = document.getElementById('imagemUrl');
 
-        // FUNÇÃO PARA LER A IMAGEM DA GALERIA
+        // PREVIEW LOCAL DA IMAGEM
         inputArquivo.onchange = (e) => {
             const file = e.target.files[0];
-            const reader = new FileReader();
-
-            reader.onloadend = () => {
-                imagemBase64.value = reader.result; // O código da imagem vai para o hidden input
-                preview.src = reader.result;
-                preview.style.display = "block";
-            };
-
             if (file) {
-                reader.readAsDataURL(file); // Transforma a foto em texto
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    preview.src = reader.result;
+                    preview.style.display = "block";
+                };
+                reader.readAsDataURL(file);
             }
         };
+
+        // FUNÇÃO PARA ENVIAR PARA O CLOUDINARY
+        async function subirParaCloudinary(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', UPLOAD_PRESET);
+
+            const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await res.json();
+            // Retorna a URL otimizada: f_auto (webp), q_auto (compressão), w_600 (tamanho ideal)
+            return data.secure_url.replace('/upload/', '/upload/f_auto,q_auto,w_600/');
+        }
 
         // SALVAR OU ATUALIZAR
         addBtn.onclick = async () => {
             const id = document.getElementById('idAtual').value;
-            const dados = {
-                nome: document.getElementById('nome').value,
-                descricao: document.getElementById('descricao').value,
-                preco: document.getElementById('preco').value,
-                categoria: document.getElementById('categoria').value,
-                imagem: imagemBase64.value // Salva o texto da imagem
-            };
+            const file = inputArquivo.files[0];
+            let urlFinal = imagemUrl.value;
 
-            if(!dados.nome || !dados.preco) return alert("Preencha o nome e preço!");
+            if(!document.getElementById('nome').value || !document.getElementById('preco').value) {
+                return alert("Preencha o nome e preço!");
+            }
 
             try {
+                addBtn.innerText = "Processando...";
+                addBtn.disabled = true;
+
+                // Se selecionou uma nova foto, envia para a nuvem
+                if (file) {
+                    addBtn.innerText = "Subindo imagem...";
+                    urlFinal = await subirParaCloudinary(file);
+                }
+
+                const dados = {
+                    nome: document.getElementById('nome').value,
+                    descricao: document.getElementById('descricao').value,
+                    preco: document.getElementById('preco').value,
+                    categoria: document.getElementById('categoria').value,
+                    imagem: urlFinal
+                };
+
                 if(id) {
                     await updateDoc(doc(db, "produtos", id), dados);
                     alert("Atualizado com sucesso!");
@@ -131,7 +164,11 @@
                 }
                 limparForm();
             } catch (err) {
+                console.error(err);
                 alert("Erro ao salvar: " + err);
+            } finally {
+                addBtn.innerText = "Salvar Produto";
+                addBtn.disabled = false;
             }
         };
 
@@ -162,9 +199,9 @@
             document.getElementById('descricao').value = desc;
             document.getElementById('preco').value = preco;
             document.getElementById('categoria').value = cat;
-            imagemBase64.value = img;
+            imagemUrl.value = img;
             preview.src = img;
-            preview.style.display = "block";
+            preview.style.display = img ? "block" : "none";
 
             document.getElementById('tituloForm').innerText = "Editando Produto";
             addBtn.innerText = "Atualizar Produto";
@@ -178,7 +215,7 @@
             document.getElementById('nome').value = '';
             document.getElementById('descricao').value = '';
             document.getElementById('preco').value = '';
-            document.getElementById('imagemBase64').value = '';
+            document.getElementById('imagemUrl').value = '';
             inputArquivo.value = '';
             preview.style.display = "none";
             document.getElementById('tituloForm').innerText = "Novo Produto";
