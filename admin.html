@@ -4,53 +4,55 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Admin - Digital Sabores</title>
+    <title>Painel Admin - Login</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
-        body { background: #f4f4f4; padding: 20px; color: #333; }
+        body { background: #f4f4f4; padding: 20px; color: #333; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
         
-        .box { max-width: 500px; margin: auto; background: #fff; padding: 25px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        .box { width: 100%; max-width: 450px; background: #fff; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
         h2 { color: #EA1D2C; margin-bottom: 20px; font-size: 22px; text-align: center; }
         
+        input, select, button, textarea { width: 100%; padding: 12px; margin-top: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
         label { font-size: 12px; font-weight: bold; color: #777; margin-top: 15px; display: block; }
-        input, select, button, textarea { width: 100%; padding: 12px; margin-top: 8px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
         
-        textarea { height: 80px; resize: none; }
-        
-        /* Botão Vermelho iFood */
-        button { background: #EA1D2C; color: #fff; font-weight: bold; cursor: pointer; border: none; transition: 0.3s; margin-top: 15px; }
+        button { background: #EA1D2C; color: #fff; font-weight: bold; cursor: pointer; border: none; transition: 0.3s; }
         button:hover { background: #c01724; }
-        button:disabled { background: #ccc; cursor: not-allowed; }
-        
-        #addBtn.editando { background: #f39c12; }
-        
-        /* Preview da Imagem */
-        #preview { width: 100%; height: 150px; object-fit: cover; border-radius: 8px; margin-top: 10px; display: none; border: 1px dashed #ddd; }
 
-        .item-lista { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #eee; background: #fff; border-radius: 10px; margin-top: 10px; }
-        .item-info img { width: 40px; height: 40px; border-radius: 5px; object-fit: cover; margin-right: 10px; }
-        .item-info { display: flex; align-items: center; }
+        /* Esconde o painel por padrão */
+        #painel-admin { display: none; }
+        #login-form { display: block; }
 
+        .item-lista { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #eee; }
+        .item-info { display: flex; align-items: center; gap: 10px; }
+        .item-info img { width: 40px; height: 40px; border-radius: 5px; object-fit: cover; }
         .btns { display: flex; gap: 8px; }
-        .btn-del { background: #fff; color: #EA1D2C; border: 1px solid #EA1D2C; width: auto; padding: 5px 12px; font-size: 11px; }
-        .btn-edit { background: #333; color: #fff; width: auto; padding: 5px 12px; font-size: 11px; }
+        .btn-del { background: #fff; color: #EA1D2C; border: 1px solid #EA1D2C; width: auto; padding: 5px 10px; font-size: 11px; }
+        .btn-edit { background: #333; color: #fff; width: auto; padding: 5px 10px; font-size: 11px; }
+        #preview { width: 100%; height: 150px; object-fit: cover; border-radius: 8px; margin-top: 10px; display: none; }
     </style>
 </head>
 <body>
 
-    <div class="box">
-        <h2 id="tituloForm">Novo Produto</h2>
-        <input type="hidden" id="idAtual">
+    <div id="login-form" class="box">
+        <h2>Acesso Restrito</h2>
+        <input type="email" id="login-email" placeholder="Seu E-mail">
+        <input type="password" id="login-senha" placeholder="Sua Senha">
+        <button id="btn-entrar">Entrar no Painel</button>
+    </div>
+
+    <div id="painel-admin" class="box">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h2 id="tituloForm" style="margin: 0;">Novo Produto</h2>
+            <button id="btn-sair" style="width: auto; padding: 5px 15px; background: #333; font-size: 12px; margin: 0;">Sair</button>
+        </div>
         
+        <input type="hidden" id="idAtual">
         <label>NOME DO PRODUTO</label>
         <input type="text" id="nome" placeholder="Ex: Marmitex Executiva">
-        
         <label>DESCRIÇÃO</label>
-        <textarea id="descricao" placeholder="O que vem no prato?"></textarea>
-        
+        <textarea id="descricao" placeholder="O que vem no prato?" style="height: 80px; resize: none;"></textarea>
         <label>PREÇO (R$)</label>
         <input type="number" id="preco" placeholder="0.00" step="0.01">
-        
         <label>CATEGORIA</label>
         <select id="categoria">
             <option value="prato-dia">Prato do Dia</option>
@@ -58,11 +60,12 @@
             <option value="comidas">Comidas</option>
             <option value="bebidas">Bebidas</option>
         </select>
-        
-        <label>FOTO DO PRATO (GALERIA)</label>
+        <label>FOTO DO PRATO</label>
         <input type="file" id="inputArquivo" accept="image/*">
         <img id="preview" src="">
-        <input type="hidden" id="imagemUrl"> <button id="addBtn">Salvar Produto</button>
+        <input type="hidden" id="imagemUrl">
+
+        <button id="addBtn">Salvar Produto</button>
         <button id="cancelBtn" style="display:none; background:#999;">Cancelar Edição</button>
 
         <hr style="margin: 25px 0; border: 0; border-top: 1px solid #eee;">
@@ -72,9 +75,9 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // Configurações do Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyB-kF0SqbeRpJZrfcav2tlhIX3HUvAcs3o",
             authDomain: "comidamae-86350.firebaseapp.com",
@@ -84,114 +87,116 @@
             appId: "1:298569952723:web:e00d98d4895ecb85d21326"
         };
 
-        // Credenciais do Cloudinary
         const CLOUD_NAME = "dshhehb3n";
         const UPLOAD_PRESET = "marmita";
 
         const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
         const db = getFirestore(app);
-        const ref = collection(db, "produtos");
 
+        // --- CONTROLE DE ACESSO ---
+        const loginForm = document.getElementById('login-form');
+        const painelAdmin = document.getElementById('painel-admin');
+
+        // Monitora se o usuário está logado
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                loginForm.style.display = 'none';
+                painelAdmin.style.display = 'block';
+                carregarProdutos();
+            } else {
+                loginForm.style.display = 'block';
+                painelAdmin.style.display = 'none';
+            }
+        });
+
+        // Função de Login
+        document.getElementById('btn-entrar').onclick = async () => {
+            const email = document.getElementById('login-email').value;
+            const senha = document.getElementById('login-senha').value;
+            try {
+                await signInWithEmailAndPassword(auth, email, senha);
+            } catch (err) {
+                alert("Acesso negado: E-mail ou senha incorretos.");
+            }
+        };
+
+        // Função de Sair
+        document.getElementById('btn-sair').onclick = () => signOut(auth);
+
+        // --- FUNÇÕES DO PAINEL (RESTANTE DO SEU CÓDIGO) ---
+        const ref = collection(db, "produtos");
         const addBtn = document.getElementById('addBtn');
-        const cancelBtn = document.getElementById('cancelBtn');
         const inputArquivo = document.getElementById('inputArquivo');
         const preview = document.getElementById('preview');
         const imagemUrl = document.getElementById('imagemUrl');
 
-        // PREVIEW LOCAL DA IMAGEM
         inputArquivo.onchange = (e) => {
             const file = e.target.files[0];
             if (file) {
                 const reader = new FileReader();
-                reader.onloadend = () => {
-                    preview.src = reader.result;
-                    preview.style.display = "block";
-                };
+                reader.onloadend = () => { preview.src = reader.result; preview.style.display = "block"; };
                 reader.readAsDataURL(file);
             }
         };
 
-        // FUNÇÃO PARA ENVIAR PARA O CLOUDINARY
         async function subirParaCloudinary(file) {
             const formData = new FormData();
             formData.append('file', file);
             formData.append('upload_preset', UPLOAD_PRESET);
-
-            const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
-                method: 'POST',
-                body: formData
-            });
-
+            const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method: 'POST', body: formData });
             const data = await res.json();
-            // Retorna a URL otimizada: f_auto (webp), q_auto (compressão), w_600 (tamanho ideal)
             return data.secure_url.replace('/upload/', '/upload/f_auto,q_auto,w_600/');
         }
 
-        // SALVAR OU ATUALIZAR
         addBtn.onclick = async () => {
             const id = document.getElementById('idAtual').value;
             const file = inputArquivo.files[0];
             let urlFinal = imagemUrl.value;
+            if(!document.getElementById('nome').value || !document.getElementById('preco').value) return alert("Nome e preço obrigatórios!");
 
-            if(!document.getElementById('nome').value || !document.getElementById('preco').value) {
-                return alert("Preencha o nome e preço!");
-            }
+            addBtn.innerText = "Salvando...";
+            addBtn.disabled = true;
 
-            try {
-                addBtn.innerText = "Processando...";
-                addBtn.disabled = true;
+            if (file) urlFinal = await subirParaCloudinary(file);
 
-                // Se selecionou uma nova foto, envia para a nuvem
-                if (file) {
-                    addBtn.innerText = "Subindo imagem...";
-                    urlFinal = await subirParaCloudinary(file);
-                }
+            const dados = {
+                nome: document.getElementById('nome').value,
+                descricao: document.getElementById('descricao').value,
+                preco: document.getElementById('preco').value,
+                categoria: document.getElementById('categoria').value,
+                imagem: urlFinal
+            };
 
-                const dados = {
-                    nome: document.getElementById('nome').value,
-                    descricao: document.getElementById('descricao').value,
-                    preco: document.getElementById('preco').value,
-                    categoria: document.getElementById('categoria').value,
-                    imagem: urlFinal
-                };
+            if(id) await updateDoc(doc(db, "produtos", id), dados);
+            else await addDoc(ref, dados);
 
-                if(id) {
-                    await updateDoc(doc(db, "produtos", id), dados);
-                    alert("Atualizado com sucesso!");
-                } else {
-                    await addDoc(ref, dados);
-                    alert("Adicionado com sucesso!");
-                }
-                limparForm();
-            } catch (err) {
-                console.error(err);
-                alert("Erro ao salvar: " + err);
-            } finally {
-                addBtn.innerText = "Salvar Produto";
-                addBtn.disabled = false;
-            }
+            limparForm();
+            addBtn.innerText = "Salvar Produto";
+            addBtn.disabled = false;
         };
 
-        // RENDERIZAR LISTA
-        onSnapshot(ref, (snap) => {
-            const lista = document.getElementById('lista');
-            lista.innerHTML = '';
-            snap.forEach(d => {
-                const p = d.data();
-                lista.innerHTML += `
-                    <div class="item-lista">
-                        <div class="item-info">
-                            <img src="${p.imagem || 'https://via.placeholder.com/50'}">
-                            <span><strong>${p.nome}</strong><br><small>R$ ${p.preco}</small></span>
+        function carregarProdutos() {
+            onSnapshot(ref, (snap) => {
+                const lista = document.getElementById('lista');
+                lista.innerHTML = '';
+                snap.forEach(d => {
+                    const p = d.data();
+                    lista.innerHTML += `
+                        <div class="item-lista">
+                            <div class="item-info">
+                                <img src="${p.imagem || 'https://via.placeholder.com/50'}">
+                                <span><strong>${p.nome}</strong><br><small>R$ ${p.preco}</small></span>
+                            </div>
+                            <div class="btns">
+                                <button class="btn-edit" onclick="prepararEdicao('${d.id}', '${p.nome}', \`${p.descricao || ''}\`, '${p.preco}', '${p.categoria}', '${p.imagem}')">Editar</button>
+                                <button class="btn-del" onclick="apagar('${d.id}')">Excluir</button>
+                            </div>
                         </div>
-                        <div class="btns">
-                            <button class="btn-edit" onclick="prepararEdicao('${d.id}', '${p.nome}', \`${p.descricao || ''}\`, '${p.preco}', '${p.categoria}', '${p.imagem}')">Editar</button>
-                            <button class="btn-del" onclick="apagar('${d.id}')">Excluir</button>
-                        </div>
-                    </div>
-                `;
+                    `;
+                });
             });
-        });
+        }
 
         window.prepararEdicao = (id, nome, desc, preco, cat, img) => {
             document.getElementById('idAtual').value = id;
@@ -202,12 +207,9 @@
             imagemUrl.value = img;
             preview.src = img;
             preview.style.display = img ? "block" : "none";
-
             document.getElementById('tituloForm').innerText = "Editando Produto";
             addBtn.innerText = "Atualizar Produto";
-            addBtn.classList.add('editando');
-            cancelBtn.style.display = "block";
-            window.scrollTo(0,0);
+            document.getElementById('cancelBtn').style.display = "block";
         };
 
         window.limparForm = () => {
@@ -220,15 +222,10 @@
             preview.style.display = "none";
             document.getElementById('tituloForm').innerText = "Novo Produto";
             addBtn.innerText = "Salvar Produto";
-            addBtn.classList.remove('editando');
-            cancelBtn.style.display = "none";
+            document.getElementById('cancelBtn').style.display = "none";
         };
 
-        cancelBtn.onclick = limparForm;
-
-        window.apagar = async (id) => {
-            if(confirm("Deseja mesmo excluir?")) await deleteDoc(doc(db, "produtos", id));
-        };
+        window.apagar = async (id) => { if(confirm("Excluir produto?")) await deleteDoc(doc(db, "produtos", id)); };
     </script>
 </body>
 </html>
