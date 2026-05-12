@@ -1,30 +1,56 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Admin - Edição e Descrição</title>
+    <title>Painel Admin - Digital Sabores</title>
     <style>
-        body { font-family: sans-serif; background: #eee; padding: 20px; }
-        .box { max-width: 500px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        input, select, button, textarea { width: 100%; padding: 12px; margin-top: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
-        textarea { height: 80px; resize: none; font-family: sans-serif; }
-        button { background: #27ae60; color: #fff; font-weight: bold; cursor: pointer; border: none; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background: #f4f4f4; padding: 20px; color: #333; }
+        
+        .box { max-width: 500px; margin: auto; background: #fff; padding: 25px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        h2 { color: #EA1D2C; margin-bottom: 20px; font-size: 22px; text-align: center; }
+        
+        label { font-size: 12px; font-weight: bold; color: #777; margin-top: 15px; display: block; }
+        input, select, button, textarea { width: 100%; padding: 12px; margin-top: 8px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
+        
+        textarea { height: 80px; resize: none; }
+        
+        /* Botão Vermelho iFood */
+        button { background: #EA1D2C; color: #fff; font-weight: bold; cursor: pointer; border: none; transition: 0.3s; margin-top: 15px; }
+        button:hover { background: #c01724; }
+        
         #addBtn.editando { background: #f39c12; }
-        .item-lista { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; margin-top: 10px; background: #fdfdfd; }
-        .btns { display: flex; gap: 5px; }
-        .btn-del { background: #e74c3c; width: auto; padding: 5px 10px; font-size: 12px; }
-        .btn-edit { background: #3498db; width: auto; padding: 5px 10px; font-size: 12px; }
+        
+        /* Preview da Imagem */
+        #preview { width: 100%; height: 150px; object-fit: cover; border-radius: 8px; margin-top: 10px; display: none; border: 1px dashed #ddd; }
+
+        .item-lista { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #eee; background: #fff; border-radius: 10px; margin-top: 10px; }
+        .item-info img { width: 40px; height: 40px; border-radius: 5px; object-fit: cover; margin-right: 10px; }
+        .item-info { display: flex; align-items: center; }
+
+        .btns { display: flex; gap: 8px; }
+        .btn-del { background: #fff; color: #EA1D2C; border: 1px solid #EA1D2C; width: auto; padding: 5px 12px; font-size: 11px; }
+        .btn-edit { background: #333; color: #fff; width: auto; padding: 5px 12px; font-size: 11px; }
     </style>
 </head>
 <body>
 
     <div class="box">
         <h2 id="tituloForm">Novo Produto</h2>
-        <input type="hidden" id="idAtual"> <input type="text" id="nome" placeholder="Nome do Produto (Ex: X-Bacon)">
-        <textarea id="descricao" placeholder="Descrição (Ex: Pão brioche, carne 160g, queijo...)"></textarea>
-        <input type="number" id="preco" placeholder="Preço (0.00)">
+        <input type="hidden" id="idAtual">
         
+        <label>NOME DO PRODUTO</label>
+        <input type="text" id="nome" placeholder="Ex: Marmitex Executiva">
+        
+        <label>DESCRIÇÃO</label>
+        <textarea id="descricao" placeholder="O que vem no prato?"></textarea>
+        
+        <label>PREÇO (R$)</label>
+        <input type="number" id="preco" placeholder="0.00" step="0.01">
+        
+        <label>CATEGORIA</label>
         <select id="categoria">
             <option value="prato-dia">Prato do Dia</option>
             <option value="promocao">Promoção</option>
@@ -32,12 +58,14 @@
             <option value="bebidas">Bebidas</option>
         </select>
         
-        <input type="text" id="imagem" placeholder="Link da Imagem (URL)">
-        <button id="addBtn">Salvar Produto</button>
-        <button id="cancelBtn" style="display:none; background:#95a5a6;">Cancelar Edição</button>
+        <label>FOTO DO PRATO (GALERIA)</label>
+        <input type="file" id="inputArquivo" accept="image/*">
+        <img id="preview" src="">
+        <input type="hidden" id="imagemBase64"> <button id="addBtn">Salvar Produto</button>
+        <button id="cancelBtn" style="display:none; background:#999;">Cancelar Edição</button>
 
-        <hr style="margin-top: 20px;">
-        <h3>Produtos no Ar</h3>
+        <hr style="margin: 25px 0; border: 0; border-top: 1px solid #eee;">
+        <h3 style="font-size: 16px;">Produtos no Ar</h3>
         <div id="lista"></div>
     </div>
 
@@ -60,8 +88,27 @@
 
         const addBtn = document.getElementById('addBtn');
         const cancelBtn = document.getElementById('cancelBtn');
+        const inputArquivo = document.getElementById('inputArquivo');
+        const preview = document.getElementById('preview');
+        const imagemBase64 = document.getElementById('imagemBase64');
 
-        // FUNÇÃO SALVAR (CRIAR OU EDITAR)
+        // FUNÇÃO PARA LER A IMAGEM DA GALERIA
+        inputArquivo.onchange = (e) => {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+
+            reader.onloadend = () => {
+                imagemBase64.value = reader.result; // O código da imagem vai para o hidden input
+                preview.src = reader.result;
+                preview.style.display = "block";
+            };
+
+            if (file) {
+                reader.readAsDataURL(file); // Transforma a foto em texto
+            }
+        };
+
+        // SALVAR OU ATUALIZAR
         addBtn.onclick = async () => {
             const id = document.getElementById('idAtual').value;
             const dados = {
@@ -69,24 +116,26 @@
                 descricao: document.getElementById('descricao').value,
                 preco: document.getElementById('preco').value,
                 categoria: document.getElementById('categoria').value,
-                imagem: document.getElementById('imagem').value
+                imagem: imagemBase64.value // Salva o texto da imagem
             };
 
             if(!dados.nome || !dados.preco) return alert("Preencha o nome e preço!");
 
-            if(id) {
-                // Modo Edição
-                await updateDoc(doc(db, "produtos", id), dados);
-                alert("Produto atualizado!");
-            } else {
-                // Modo Novo
-                await addDoc(ref, dados);
-                alert("Produto adicionado!");
+            try {
+                if(id) {
+                    await updateDoc(doc(db, "produtos", id), dados);
+                    alert("Atualizado com sucesso!");
+                } else {
+                    await addDoc(ref, dados);
+                    alert("Adicionado com sucesso!");
+                }
+                limparForm();
+            } catch (err) {
+                alert("Erro ao salvar: " + err);
             }
-            limparForm();
         };
 
-        // RENDERIZAR LISTA COM BOTÃO EDITAR
+        // RENDERIZAR LISTA
         onSnapshot(ref, (snap) => {
             const lista = document.getElementById('lista');
             lista.innerHTML = '';
@@ -94,7 +143,10 @@
                 const p = d.data();
                 lista.innerHTML += `
                     <div class="item-lista">
-                        <span><strong>${p.nome}</strong><br><small>R$ ${p.preco}</small></span>
+                        <div class="item-info">
+                            <img src="${p.imagem || 'https://via.placeholder.com/50'}">
+                            <span><strong>${p.nome}</strong><br><small>R$ ${p.preco}</small></span>
+                        </div>
                         <div class="btns">
                             <button class="btn-edit" onclick="prepararEdicao('${d.id}', '${p.nome}', \`${p.descricao || ''}\`, '${p.preco}', '${p.categoria}', '${p.imagem}')">Editar</button>
                             <button class="btn-del" onclick="apagar('${d.id}')">Excluir</button>
@@ -104,14 +156,15 @@
             });
         });
 
-        // PREPARAR CAMPOS PARA EDIÇÃO
         window.prepararEdicao = (id, nome, desc, preco, cat, img) => {
             document.getElementById('idAtual').value = id;
             document.getElementById('nome').value = nome;
             document.getElementById('descricao').value = desc;
             document.getElementById('preco').value = preco;
             document.getElementById('categoria').value = cat;
-            document.getElementById('imagem').value = img;
+            imagemBase64.value = img;
+            preview.src = img;
+            preview.style.display = "block";
 
             document.getElementById('tituloForm').innerText = "Editando Produto";
             addBtn.innerText = "Atualizar Produto";
@@ -122,7 +175,12 @@
 
         window.limparForm = () => {
             document.getElementById('idAtual').value = '';
-            document.querySelectorAll('input, textarea').forEach(i => i.value = '');
+            document.getElementById('nome').value = '';
+            document.getElementById('descricao').value = '';
+            document.getElementById('preco').value = '';
+            document.getElementById('imagemBase64').value = '';
+            inputArquivo.value = '';
+            preview.style.display = "none";
             document.getElementById('tituloForm').innerText = "Novo Produto";
             addBtn.innerText = "Salvar Produto";
             addBtn.classList.remove('editando');
@@ -132,7 +190,7 @@
         cancelBtn.onclick = limparForm;
 
         window.apagar = async (id) => {
-            if(confirm("Excluir item?")) await deleteDoc(doc(db, "produtos", id));
+            if(confirm("Deseja mesmo excluir?")) await deleteDoc(doc(db, "produtos", id));
         };
     </script>
 </body>
